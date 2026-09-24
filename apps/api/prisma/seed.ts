@@ -119,7 +119,12 @@ async function main() {
     await prisma.commissariat.upsert({
       where: { id: c.id },
       update: {},
-      create: c,
+      create: {
+        ...c,
+        slug: c.id,
+        university: c.name,
+        description: `Komisariat ${c.name}.`,
+      },
     });
   }
 

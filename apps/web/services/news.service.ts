@@ -40,13 +40,24 @@ export const getLatestNews = async (): Promise<AdminNewsItem[]> => {
   return response.json();
 };
 
+const parseErrorMessage = async (response: Response, fallback: string) => {
+  try {
+    const data = await response.json();
+    return data?.message || fallback;
+  } catch {
+    return fallback;
+  }
+};
+
 export const createNews = async (formData: FormData): Promise<AdminNewsItem> => {
   const response = await fetch('http://localhost:5000/api/news', {
     method: 'POST',
     headers: getHeaders(true),
     body: formData,
   });
-  if (!response.ok) throw new Error('Failed to create News');
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response, 'Gagal membuat berita.'));
+  }
   return response.json();
 };
 
@@ -56,7 +67,9 @@ export const updateNews = async (id: string, formData: FormData): Promise<AdminN
     headers: getHeaders(true),
     body: formData,
   });
-  if (!response.ok) throw new Error('Failed to update News');
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response, 'Gagal memperbarui berita.'));
+  }
   return response.json();
 };
 
@@ -65,5 +78,7 @@ export const deleteNews = async (id: string): Promise<void> => {
     method: 'DELETE',
     headers: getHeaders(),
   });
-  if (!response.ok) throw new Error('Failed to delete News');
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response, 'Gagal menghapus berita.'));
+  }
 };

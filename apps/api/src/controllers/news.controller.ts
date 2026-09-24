@@ -16,6 +16,11 @@ function generateSlug(title: string) {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 }
 
+function generateSafeFileSlug(slug: string, maxLength = 80) {
+  const sanitized = slug.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/-+/g, '-').replace(/(^-|-$)+/g, '');
+  return sanitized.slice(0, maxLength).replace(/-+$/, '') || 'news';
+}
+
 export const getLatestNews = async (req: Request, res: Response) => {
   try {
     const news = await (prisma as any).news.findMany({
@@ -53,8 +58,11 @@ export const createNews = async (req: Request, res: Response) => {
        slug = `${slug}-${Date.now().toString().slice(-4)}`;
     }
 
-    const filename = `${Date.now()}-${slug}-cover.webp`;
+    const safeFileSlug = generateSafeFileSlug(slug);
+    const filename = `${Date.now()}-${safeFileSlug}-cover.webp`;
     const savePath = path.join(UPLOAD_DIR, filename);
+
+    fs.mkdirSync(path.dirname(savePath), { recursive: true });
 
     // Compress Cover Image
     await sharp(req.file.buffer)
@@ -95,8 +103,11 @@ export const updateNews = async (req: Request, res: Response) => {
     }
 
     if (req.file) {
-      const filename = `${Date.now()}-${slug}-cover.webp`;
+      const safeFileSlug = generateSafeFileSlug(slug);
+      const filename = `${Date.now()}-${safeFileSlug}-cover.webp`;
       const savePath = path.join(UPLOAD_DIR, filename);
+
+      fs.mkdirSync(path.dirname(savePath), { recursive: true });
 
       await sharp(req.file.buffer)
         .resize({ width: 1200, withoutEnlargement: true })

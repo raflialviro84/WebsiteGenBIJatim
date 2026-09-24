@@ -125,7 +125,11 @@ export default function AdminNewsPage() {
       await fetchData();
       closeModal();
     } catch (err) {
-      alert("Terjadi kesalahan saat menyimpan berita.");
+      const message =
+        err instanceof Error && err.message
+          ? err.message
+          : "Terjadi kesalahan saat menyimpan berita.";
+      alert(message);
     } finally {
       setIsSaving(false);
     }
